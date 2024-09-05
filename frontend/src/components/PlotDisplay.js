@@ -1,13 +1,19 @@
 import React from 'react';
+import { Box } from '@mui/material';
 
 const PlotDisplay = ({ plotData }) => {
   if (!plotData) {
-    return <div>Loading...</div>;
+    return <Box sx={{ height: 400, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>Loading...</Box>;
   }
+
   return (
-    <div>
-      <img src={`data:image/png;base64,${plotData}`} alt="House Price Plot" style={{ width: '100%' }} />
-    </div>
+    <Box sx={{ height: 400, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+      <img
+        src={`data:image/png;base64,${plotData}`}
+        alt="House Price Plot"
+        style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'contain' }}
+      />
+    </Box>
   );
 };
 

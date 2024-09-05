@@ -1,63 +1,32 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
-import { Container, AppBar, Tabs, Tab, Box, styled } from '@mui/material';
-import { createTheme, ThemeProvider } from '@mui/material/styles';
+import { Container, Grid, Paper, Tabs, Tab, Box } from '@mui/material';
 import RegionSelector from './components/RegionSelector';
 import PlotDisplay from './components/PlotDisplay';
 import TabPanel from './components/TabPanel';
-
-const theme = createTheme({
-  palette: {
-    primary: {
-      main: '#1976d2',
-    },
-    secondary: {
-      main: '#f50057',
-    },
-  },
-});
-
-const StyledTabs = styled(Tabs)(({ theme }) => ({
-  '& .MuiTabs-indicator': {
-    backgroundColor: theme.palette.secondary.main,
-  },
-}));
-
-const StyledTab = styled(Tab)(({ theme }) => ({
-  textTransform: 'none',
-  fontWeight: theme.typography.fontWeightRegular,
-  fontSize: theme.typography.pxToRem(15),
-  marginRight: theme.spacing(1),
-  '&.Mui-selected': {
-    color: theme.palette.secondary.main,
-    fontWeight: theme.typography.fontWeightMedium,
-  },
-  '&.Mui-focusVisible': {
-    backgroundColor: theme.palette.action.selected,
-  },
-}));
+import axios from 'axios';
 
 function App() {
   const [regions, setRegions] = useState([]);
   const [selectedRegion, setSelectedRegion] = useState('');
-  const [plots, setPlots] = useState({});
+  const [plotData, setPlotData] = useState({});
   const [tabValue, setTabValue] = useState(0);
 
   useEffect(() => {
-    axios.get('http://localhost:8000/regions')
-      .then(response => {
-        setRegions(response.data);
-        setSelectedRegion(response.data[0]);
-      });
+    axios.get('http://localhost:8000/regions').then((response) => {
+      setRegions(response.data);
+      setSelectedRegion(response.data[0]);
+    });
   }, []);
 
   useEffect(() => {
     if (selectedRegion) {
-      axios.get(`http://localhost:8000/region/${encodeURIComponent(selectedRegion)}`)
-        .then(response => {
-          console.log('Received plots:', response.data.plots);
-          setPlots(response.data.plots);
-        });
+      axios.get(`http://localhost:8000/region/${selectedRegion}`).then((response) => {
+        setPlotData(response.data.plots);
+        // Reset tab to 0 if current tab is not available for 'Across the UK'
+        if (selectedRegion === 'Across the UK' && tabValue > 1) {
+          setTabValue(0);
+        }
+      });
     }
   }, [selectedRegion]);
 
@@ -69,48 +38,63 @@ function App() {
     setTabValue(newValue);
   };
 
-  const tabs = [
-    { label: "Average Price", key: "average_price" },
-    { label: "Cumulative Change", key: "cumulative_change" },
-    ...(selectedRegion !== 'Across the UK' 
-      ? [
-          { label: "Property Type", key: "property_type" },
-          { label: "Property Type Change", key: "property_type_change" }
-        ] 
-      : []
-    )
-  ];
-
   return (
-    <ThemeProvider theme={theme}>
-      <Container>
-        <h1>UK House Price Analysis</h1>
-        <RegionSelector
-          regions={regions}
-          selectedRegion={selectedRegion}
-          onRegionChange={handleRegionChange}
-        />
-        <Box sx={{ width: '100%', mt: 3 }}>
-          <AppBar position="static" color="default">
-            <StyledTabs
+    <Container maxWidth="lg">
+      <h1>UK House Price Analysis</h1>
+      <Grid container spacing={3}>
+        <Grid item xs={12}>
+          <RegionSelector
+            regions={regions}
+            selectedRegion={selectedRegion}
+            onRegionChange={handleRegionChange}
+          />
+        </Grid>
+        <Grid item xs={12}>
+          <Paper>
+            <Tabs
               value={tabValue}
               onChange={handleTabChange}
-              variant="scrollable"
-              scrollButtons="auto"
+              indicatorColor="primary"
+              textColor="primary"
+              centered
             >
-              {tabs.map((tab, index) => (
-                <StyledTab key={tab.key} label={tab.label} />
-              ))}
-            </StyledTabs>
-          </AppBar>
-          {tabs.map((tab, index) => (
-            <TabPanel key={tab.key} value={tabValue} index={index}>
-              <PlotDisplay plotData={plots[tab.key]} />
-            </TabPanel>
-          ))}
-        </Box>
-      </Container>
-    </ThemeProvider>
+              <Tab label="Average Price" />
+              <Tab label="Cumulative Change" />
+              <Tab 
+                label="Property Type" 
+                disabled={selectedRegion === 'Across the UK'}
+              />
+              <Tab 
+                label="Property Type Change" 
+                disabled={selectedRegion === 'Across the UK'}
+              />
+            </Tabs>
+            <Box sx={{ p: 3 }}>
+              <TabPanel value={tabValue} index={0}>
+                <PlotDisplay plotData={plotData.average_price} />
+              </TabPanel>
+              <TabPanel value={tabValue} index={1}>
+                <PlotDisplay plotData={plotData.cumulative_change} />
+              </TabPanel>
+              <TabPanel value={tabValue} index={2}>
+                {selectedRegion !== 'Across the UK' && plotData.property_type ? (
+                  <PlotDisplay plotData={plotData.property_type} />
+                ) : (
+                  <div>Property type data not available for UK-wide view</div>
+                )}
+              </TabPanel>
+              <TabPanel value={tabValue} index={3}>
+                {selectedRegion !== 'Across the UK' && plotData.property_type_change ? (
+                  <PlotDisplay plotData={plotData.property_type_change} />
+                ) : (
+                  <div>Property type change data not available for UK-wide view</div>
+                )}
+              </TabPanel>
+            </Box>
+          </Paper>
+        </Grid>
+      </Grid>
+    </Container>
   );
 }
 
