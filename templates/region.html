@@ -1,0 +1,13 @@
+<h2>Average Price of Properties in {{ region_name }}</h2>
+<img src="data:image/png;base64,{{ plots['average_price'] }}">
+
+<h2>Relative Cumulative Change of Average Price of Properties in {{ region_name }}</h2>
+<img src="data:image/png;base64,{{ plots['cumulative_change'] }}">
+
+{% if region_name != "Across the UK" %}
+<h2>Average Price by Property Type in {{ region_name }}</h2>
+<img src="data:image/png;base64,{{ plots['property_type'] }}">
+
+<h2>Relative Cumulative Change of Average Price by Property Type in {{ region_name }}</h2>
+<img src="data:image/png;base64,{{ plots['property_type_change'] }}">
+{% endif %}

@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>UK House Price Analysis</title>
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+</head>
+<body>
+    <h1>UK House Price Analysis</h1>
+    <label for="region-select">Choose a region:</label>
+    <select id="region-select">
+        {% for region in regions %}
+        <option value="{{ region }}" {% if region == "Across the UK" %}selected{% endif %}>{{ region }}</option>
+        {% endfor %}
+    </select>
+    <div id="region-data"></div>
+
+    <script>
+        const regionSelect = document.getElementById('region-select');
+        const regionData = document.getElementById('region-data');
+
+        function loadRegionData(region) {
+            axios.get(`/region/${encodeURIComponent(region)}`)
+                .then(response => {
+                    regionData.innerHTML = response.data;
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    regionData.innerHTML = '<p>Error loading data</p>';
+                });
+        }
+
+        regionSelect.addEventListener('change', (event) => {
+            loadRegionData(event.target.value);
+        });
+
+        // Load default region data on page load
+        document.addEventListener('DOMContentLoaded', () => {
+            loadRegionData(regionSelect.value);
+        });
+    </script>
+</body>
+</html>

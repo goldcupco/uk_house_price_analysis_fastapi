@@ -1,32 +1,46 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException, Request
 from fastapi.responses import HTMLResponse
+from fastapi.templating import Jinja2Templates
 from app.data_loader import load_and_preprocess_data
-from app.visualizations import create_hpi_trend_plot, create_regional_comparison_plot, create_year_on_year_change_plot
+from app.visualizations import create_all_plots
 from app.utils import plot_to_base64
+import logging
+
+# Set up logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 app = FastAPI()
 
+# Set up Jinja2 templates
+templates = Jinja2Templates(directory="templates")
+
+# Load data once when the application starts
+df = load_and_preprocess_data()
+regions = ["Across the UK"] + sorted(df['RegionName'].unique())
+
 @app.get("/", response_class=HTMLResponse)
-async def root():
-    df = load_and_preprocess_data()
-    
-    # Generate plots
-    hpi_trend = create_hpi_trend_plot(df)
-    regional_comparison = create_regional_comparison_plot(df)
-    yoy_change = create_year_on_year_change_plot(df)
-    
-    # Convert plots to base64-encoded images
-    encoded_plots = [plot_to_base64(plot) for plot in [hpi_trend, regional_comparison, yoy_change]]
-    
-    # Generate HTML with embedded images
-    html_content = f"""
-    <html>
-        <body>
-            <h1>UK House Price Analysis</h1>
-            <img src="data:image/png;base64,{encoded_plots[0]}">
-            <img src="data:image/png;base64,{encoded_plots[1]}">
-            <img src="data:image/png;base64,{encoded_plots[2]}">
-        </body>
-    </html>
-    """
-    return HTMLResponse(content=html_content)
+async def root(request: Request):
+    return templates.TemplateResponse("index.html", {"request": request, "regions": regions})
+
+@app.get("/region/{region_name}", response_class=HTMLResponse)
+async def get_region_data(request: Request, region_name: str):
+    try:
+        plots = create_all_plots(df, region_name)
+        
+        # Convert plots to base64-encoded images
+        encoded_plots = {key: plot_to_base64(fig) for key, fig in plots.items()}
+        
+        return templates.TemplateResponse("region.html", {
+            "request": request,
+            "region_name": region_name,
+            "plots": encoded_plots,
+            "regions": regions
+        })
+    except Exception as e:
+        logger.error(f"Error in get_region_data endpoint: {str(e)}")
+        return HTMLResponse(content=f"<html><body><h1>Error</h1><p>{str(e)}</p></body></html>", status_code=500)
+
+if __name__ == "__main__":
+    import uvicorn
+    uvicorn.run(app, host="0.0.0.0", port=8000)

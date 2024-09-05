@@ -1,8 +1,10 @@
 import io
 import base64
 
-def plot_to_base64(plot):
-    img = io.BytesIO()
-    plot.savefig(img, format='png')
-    img.seek(0)
-    return base64.b64encode(img.getvalue()).decode()
+def plot_to_base64(fig):
+    buf = io.BytesIO()
+    fig.savefig(buf, format='png')
+    buf.seek(0)
+    img_str = base64.b64encode(buf.getvalue()).decode()
+    buf.close()
+    return img_str
