@@ -80,8 +80,8 @@ function DataTable({ data }) {
 }
 
 function App() {
-  const [regions, setRegions] = useState(["Nationwide"]);
-  const [selectedRegion, setSelectedRegion] = useState("Nationwide");
+  const [regions, setRegions] = useState([]);
+  const [selectedRegion, setSelectedRegion] = useState("");
   const [plotsData, setPlotsData] = useState({});
   const [tabValue, setTabValue] = useState(0);
 
@@ -89,8 +89,8 @@ function App() {
     axios
       .get("http://localhost:8000/api/regions")
       .then((response) => {
-        const allRegions = ["Nationwide", ...response.data.regions];
-        setRegions(allRegions);
+        setRegions(response.data.regions);
+        setSelectedRegion(response.data.regions[0]);
       })
       .catch((error) => console.error("Error fetching regions:", error));
   }, []);
@@ -169,11 +169,17 @@ function App() {
                   <Typography variant="h6" gutterBottom>
                     {formatPlotName(plotName)}
                   </Typography>
+
                   <img
                     src={`data:image/png;base64,${plotImage}`}
-                    alt={formatPlotName(plotName) || "Plot image"}
+                    alt={formatPlotName(plotName) || plotName || "Plot image"}
                     style={{ maxWidth: "100%", height: "auto" }}
                   />
+                  <img 
+  src={`data:image/png;base64,${plotImage}`}
+  alt={plotName || "Plot image"}
+  style={{ maxWidth: '100%', height: 'auto' }}
+/>
                   {plotsData.data && plotsData.data[plotName] && (
                     <DataTable data={plotsData.data[plotName]} />
                   )}
@@ -181,6 +187,7 @@ function App() {
               )
             )}
           </Box>
+
         )}
       </Container>
     </ThemeProvider>
