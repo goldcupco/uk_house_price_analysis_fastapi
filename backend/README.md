@@ -6,9 +6,14 @@ This project provides a web application for analyzing UK house prices using Fast
 ## Setup
 
 1. Clone this repository
-2. Install dependencies: `pip install -r requirements.txt`
-3. Place the UK HPI data CSV file in the `data/` folder
-4. Run the application: `uvicorn app.main:app --reload`
+2. cd backend
+3. Install dependencies: `pip install -r requirements.txt`
+4. backend % python3 -m venv venv
+backend % source ./venv/bin/activate
+
+
+5. Place the UK HPI data CSV file in the `data/` folder
+6. Run the application: `uvicorn app.main:app --reload`
 
 ## Usage
 
