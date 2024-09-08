@@ -1,7 +1,7 @@
 import pandas as pd
 import os
 
-def load_data():
+def load_and_preprocess_data():
     file_path = os.path.join(os.path.dirname(__file__), '..', 'data', 'UK-HPI-full-file-2020-06.csv')
     df = pd.read_csv(file_path)
     
@@ -23,8 +23,11 @@ def load_data():
     
     # Add UK Nationwide data
     uk_nationwide = df.groupby('Date')['AveragePrice'].mean().reset_index()
-    uk_nationwide['RegionName'] = 'UK Nationwide'
+    uk_nationwide['RegionName'] = 'Nationwide'
     
     df_final = pd.concat([df_cities, uk_nationwide])
-    
     return df_final
+
+load_data = load_and_preprocess_data
+
+# You can add any additional functions or preprocessing steps here

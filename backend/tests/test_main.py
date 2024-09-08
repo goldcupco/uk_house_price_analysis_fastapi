@@ -1,36 +1,42 @@
 from fastapi.testclient import TestClient
 from app.main import app
-import pytest
+import unittest
 import matplotlib
 matplotlib.use('Agg')
 
-client = TestClient(app)
+class TestMain(unittest.TestCase):
+    def setUp(self):
+        self.client = TestClient(app)
 
-def test_get_regions():
-    response = client.get("/regions")
-    assert response.status_code == 200
-    regions = response.json()
-    assert isinstance(regions, list)
-    assert "Across the UK" in regions
+    def test_get_regions(self):
+        response = self.client.get("/api/regions")
+        self.assertEqual(response.status_code, 200)
+        data = response.json()
+        self.assertIn('regions', data)
+        self.assertIsInstance(data['regions'], list)
+        self.assertIn("Nationwide", data['regions'])
+    
+    def test_get_region_data_across_uk(self):
+        response = self.client.get("/api/plots/Nationwide")
+        self.assertEqual(response.status_code, 200)
+        data = response.json()
+        self.assertIn("plots", data)
+        self.assertIn("average_price", data["plots"])
+        self.assertIn("cumulative_change", data["plots"])
 
-def test_get_region_data_across_uk():
-    response = client.get("/region/Across%20the%20UK")
-    assert response.status_code == 200
-    data = response.json()
-    assert "plots" in data
-    assert "average_price" in data["plots"]
-    assert "cumulative_change" in data["plots"]
+    def test_get_region_data_specific_region(self):
+        response = self.client.get("/api/plots/Cambridge")
+        self.assertEqual(response.status_code, 200)
+        data = response.json()
+        self.assertIn("plots", data)
+        self.assertIn("average_price", data["plots"])
+        self.assertIn("cumulative_change", data["plots"])
+        self.assertIn("property_type", data["plots"])
+        self.assertIn("property_type_change", data["plots"])
 
-def test_get_region_data_specific_region():
-    response = client.get("/region/Inner London")
-    assert response.status_code == 200
-    data = response.json()
-    assert "plots" in data
-    assert "average_price" in data["plots"]
-    assert "cumulative_change" in data["plots"]
-    assert "property_type" in data["plots"]
-    assert "property_type_change" in data["plots"]
+    def test_get_region_data_invalid_region(self):
+        response = self.client.get("/api/plots/InvalidRegion")
+        self.assertEqual(response.status_code, 500)
 
-def test_get_region_data_invalid_region():
-    response = client.get("/region/InvalidRegion")
-    assert response.status_code == 500
+if __name__ == '__main__':
+    unittest.main()

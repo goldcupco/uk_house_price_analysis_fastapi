@@ -26,7 +26,7 @@ def check_data_integrity(df):
     logger.info("Data integrity check passed")
 
 def prepare_data(df, region_name):
-    if region_name == "UK Nationwide":
+    if region_name == "Nationwide":
         data = df.groupby('Date')['AveragePrice'].mean().reset_index()
     else:
         data = df[df['RegionName'] == region_name].copy()
@@ -97,7 +97,7 @@ def create_all_plots(df, region_name):
         plots['average_price'], plot_data['average_price'] = create_average_price_plot(data, region_name)
         plots['cumulative_change'], plot_data['cumulative_change'] = create_cumulative_change_plot(data, region_name)
         
-        if region_name != "UK Nationwide":
+        if region_name != "Nationwide":
             plots['property_type'], plot_data['property_type'] = create_property_type_plot(data, region_name)
             plots['property_type_change'], plot_data['property_type_change'] = create_property_type_change_plot(data, region_name)
         

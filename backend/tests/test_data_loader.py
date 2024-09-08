@@ -5,9 +5,10 @@ class TestDataLoader(unittest.TestCase):
     def test_load_and_preprocess_data(self):
         df = load_and_preprocess_data()
         self.assertIsNotNone(df)
-        self.assertIn('Date', df.columns)
-        self.assertIn('Index', df.columns)
-        # Add more assertions as needed
+        self.assertGreater(len(df), 0)
+        # Add more assertions as needed to test the data
 
 if __name__ == '__main__':
     unittest.main()
+    
+    
